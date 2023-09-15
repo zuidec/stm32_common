@@ -1,0 +1,26 @@
+{
+    "name": "stm32_shared",
+    "version": "1.0.0",
+    "keywords": "stm32, shared, common, core",
+    "description": "Shared core files for STM32",
+    "authors":
+    [
+      {
+        "name": "Case Zuiderveld",
+        "email": "noemail@noemail.com",
+        "url": "https://www.nourl.com",
+        "maintainer": true
+      }
+    ],
+    "frameworks": "libopencm3",
+    "platforms": "ststm32",
+
+    "build": {
+        "libArchive": false,
+		"flags": [
+			"-Iinclude",
+			"-Isrc"
+		]
+    }
+}
+
