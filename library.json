@@ -1,8 +1,8 @@
 {
-    "name": "stm32_shared",
+    "name": "stm32_common",
     "version": "1.0.0",
     "keywords": "stm32, shared, common, core",
-    "description": "Shared core files for STM32",
+    "description": "Common core methods for STM32",
     "authors":
     [
       {
@@ -14,13 +14,14 @@
     ],
     "frameworks": "libopencm3",
     "platforms": "ststm32",
-
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/zuidec/stm32_common"
+    },
     "build": {
-        "libArchive": false,
-		"flags": [
-			"-Iinclude",
-			"-Isrc"
-		]
+        "libArchive": false
+
     }
 }
 

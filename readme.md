@@ -1,0 +1,1 @@
+###This library is intended to be used as a base starting point to get a project up and running with STM32 microcontrollers
