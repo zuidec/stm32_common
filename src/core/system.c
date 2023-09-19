@@ -37,6 +37,12 @@ void system_setup(void) {
 
 
 }
+void system_teardown(void)  {
+
+    systick_interrupt_disable();
+    systick_counter_disable();
+    systick_clear();
+}
 
 uint64_t system_get_ticks(void)  {
     return systicks;

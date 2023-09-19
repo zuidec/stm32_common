@@ -1,6 +1,7 @@
 #include "core/comms.h"
 #include "core/uart.h"
 #include "core/crc8.h"
+#include <string.h>
 
 #define PACKET_BUFFER_LENGTH    (8)
 
@@ -38,64 +39,36 @@ static uint32_t packet_read_index = 0;
 static uint32_t packet_write_index = 0;
 static uint32_t packet_buffer_mask = PACKET_BUFFER_LENGTH -1;
 
-static bool comms_is_re_tx_packet(const comms_packet_t* packet) {
+
+void comms_create_single_byte_packet(comms_packet_t* packet, uint8_t byte)  {
+    
+    memset(packet, 0xFF, sizeof(comms_packet_t));
+    packet->length = 1;
+    packet->payload[0] = byte;
+    packet->crc = comms_compute_crc(packet);
+}
+
+bool comms_is_single_byte_packet(const comms_packet_t* packet, uint8_t byte)  {
     if(packet->length!=1)   {
         return false;
     }
-    if(packet->payload[0]!=PACKET_RE_TX_PAYLOAD)    {
+    if(packet->payload[0]!=byte)   {
         return false;
     }
-     for (uint8_t i = 1; i < PACKET_PAYLOAD_LENGTH; i++) {
-        if(packet->payload[i]!=0xff)    {
-            return false;
-        }
-    }
-    return true;
-}
-
-static bool comms_is_ack_packet(const comms_packet_t* packet) {
-    if(packet->length!=1)   {
-        return false;
-    }
-    if(packet->payload[0]!=PACKET_ACK_PAYLOAD)    {
-        return false;
-    }
-     for (uint8_t i = 1; i < PACKET_PAYLOAD_LENGTH; i++) {
-        if(packet->payload[i]!=0xff)    {
-            return false;
-        }
-    }
-    return true;
-}
-
-static void comms_packet_copy(const comms_packet_t* source, comms_packet_t* destination)  {
-    destination->length = source->length;
-
     for (uint8_t i = 1; i < PACKET_PAYLOAD_LENGTH; i++) {
-        destination->payload[i] = source->payload[i];
+        if(packet->payload[i]!=0xff)    {
+            return false;
+        }
     }
-
-    destination->crc = source->crc;
-
+    return true;
 }
+
 
 void comms_setup(void)  {
 
-    // Initialize the retransmit packet structure
-    re_tx_packet.length = 1;
-    re_tx_packet.payload[0] = PACKET_RE_TX_PAYLOAD;
-    for (uint8_t i = 1; i < PACKET_PAYLOAD_LENGTH; i++) {
-        re_tx_packet.payload[i] = 0xff;
-    }
-    re_tx_packet.crc = comms_compute_crc(&re_tx_packet);
-
-    // Initialize the ack packet structure
-    ack_packet.length = 1;
-    ack_packet.payload[0] = PACKET_ACK_PAYLOAD;
-    for (uint8_t i = 1; i < PACKET_PAYLOAD_LENGTH; i++) {
-        ack_packet.payload[i] = 0xff;
-    }
-    ack_packet.crc = comms_compute_crc(&ack_packet);
+    // Initialize the retransmit and ack packet structure
+    comms_create_single_byte_packet(&re_tx_packet, PACKET_RE_TX_PAYLOAD);
+    comms_create_single_byte_packet(&ack_packet, PACKET_ACK_PAYLOAD);
 
 }
 
@@ -125,12 +98,12 @@ void comms_update(void) {
                     state = CommsState_length;
                     break;
                 }
-                if(comms_is_re_tx_packet(&temporary_packet))    {
+                if(comms_is_single_byte_packet(&temporary_packet, PACKET_RE_TX_PAYLOAD))     {
                     comms_write(&last_tx_packet);
                     state = CommsState_length;
                     break;
                 }
-                if(comms_is_ack_packet(&temporary_packet))  {
+                if(comms_is_single_byte_packet(&temporary_packet, PACKET_ACK_PAYLOAD))  {
                     state = CommsState_length;
                     break;
                 }
@@ -139,7 +112,8 @@ void comms_update(void) {
                 if(next_write_index==packet_read_index) {
                     __asm__("BKPT #0");
                 }
-                comms_packet_copy(&temporary_packet, &packet_buffer[packet_write_index]);
+
+                memcpy(&packet_buffer[packet_write_index],&temporary_packet, sizeof(comms_packet_t));
                 packet_write_index = next_write_index;
                 comms_write(&ack_packet);
                 state = CommsState_length;
@@ -162,12 +136,12 @@ bool comms_packets_available(void)  {
 
 void comms_write(comms_packet_t* packet)    {
     uart_write((uint8_t*)packet, PACKET_LENGTH);
-    comms_packet_copy(packet, &last_tx_packet );
+    memcpy(&last_tx_packet,packet, sizeof(comms_packet_t));
 
 }
 
 void comms_read(comms_packet_t* packet) {
-    comms_packet_copy(&packet_buffer[packet_read_index & packet_buffer_mask], packet);
+    memcpy(packet, &packet_buffer[packet_read_index & packet_buffer_mask], sizeof(comms_packet_t));
     packet_read_index = (packet_read_index + 1) & packet_buffer_mask;
 
 }

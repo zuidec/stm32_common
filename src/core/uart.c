@@ -52,6 +52,20 @@ void uart_setup(void)   {
 
 }
 
+void uart_teardown(void)   {
+ 
+    // Disable RX interrupt
+    usart_disable_rx_interrupt(USART2);
+    
+    // Turn off the UART
+    usart_disable(USART2);
+    nvic_disable_irq(NVIC_USART2_IRQ);
+
+    //Stop the clock for the UART
+    rcc_periph_clock_disable(RCC_USART2);
+
+}
+
 void uart_write(uint8_t* data, const uint32_t length)   {
 
     // Loop through data and send a byte at a time
