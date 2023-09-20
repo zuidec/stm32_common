@@ -34,12 +34,12 @@ void timer_pwm_set_duty_cycle(float duty_cycle) {
     // CCR = ARR_VALUE * (duty_cycle * 100)
     
     // Need to check for numbers >1 and <0 ?? not sure about this
-    if(duty_cycle > 1.0f || duty_cycle < 0.0f)  {
-       // return; // Return if duty cycle is not valid
+    if(duty_cycle > 100.0f || duty_cycle < 0.0f)  {
+        return; // Return if duty cycle is not valid
     }
 
     // Calculate the right CCR value based on the duty cycle
-    const float raw_ccr_value = (float)ARR_VALUE * (duty_cycle * 100.0f);
+    const float raw_ccr_value = (float)ARR_VALUE * (duty_cycle / 100.0f);
 
     // Set the new value
     timer_set_oc_value(TIM2, TIM_OC1, (uint32_t)raw_ccr_value);

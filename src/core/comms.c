@@ -1,6 +1,6 @@
 #include "core/comms.h"
 #include "core/uart.h"
-#include "core/crc8.h"
+#include "core/crc.h"
 #include <string.h>
 
 #define PACKET_BUFFER_LENGTH    (8)
